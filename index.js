@@ -15,7 +15,10 @@ const device = puppeteer.devices["Galaxy Note 3"];
     const page = await browser.newPage();
     await page.emulate(device);
     try {
-      await page.goto(url);
+      await page.goto(url, {
+        waitUntil: "domcontentloaded",
+        timeout: 0,
+      });
     } catch (e) {
       console.log(e, journal, url);
       return;
@@ -32,8 +35,12 @@ const device = puppeteer.devices["Galaxy Note 3"];
     );
     const textStylePromises = textNodes.map((elemHandler) =>
       elemHandler.evaluate((elem) => {
-        style = getComputedStyle(elem.parentNode || elem);
-
+        try {
+          style = getComputedStyle(elem.parentNode || elem);
+        } catch (e) {
+          console.log(e, journal, url);
+          return;
+        }
         return {
           txt: elem.wholeText,
           fontSize: style.getPropertyValue("font-size"),
