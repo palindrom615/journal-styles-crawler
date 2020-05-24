@@ -11,20 +11,21 @@ const device = puppeteer.devices["Galaxy Note 3"];
   // const nodes = await page.$$("*");
 
   // const nodeArr = Array.from(nodes);
-  const properties = [];
-  const texts = await page.$x('//text()[not(parent::script|parent::style)]')
-  const texts_innerText = await Promise.all(texts.map(e => e.evaluate(e => ({txt: e.wholeText, parent: e.parentNode}))))
-  console.log(texts_innerText.filter(t => t.txt.length > 100))
-  const nodeTypes= await page.$$eval('div, p', nodes => nodes.map(n => n.textContent));
-  // nodeTypes.filter(n => n === 3)
-  // console.log(nodeTypes.filter(n => n.length > 50))
-  // for (node of nodes.entries()) {
-  //   console.log(node)
-  //   properties.push(node.nodeType);
-  // }
-  // const properties = await Promise.all(nodeArr.map(n => n.jsonValue()))
-  // await Promise.all(properties)
-  console.log(properties)
 
+  const texts = await page.$x("//text()[not(parent::script|parent::style)]");
+  console.log(texts[0])
+  const texts_innerText = await Promise.all(
+    texts.map((e) =>
+      e.evaluate((e) => {
+        style = getComputedStyle(e.parentNode);
+        return {
+          txt: e.wholeText,
+          parent: e.parentNode,
+          fontSize: style.getPropertyValue("font-size"),
+          fontFamily: style.getPropertyValue("font-family"),
+        };
+      })
+    )
+  );
   await browser.close();
 })();
