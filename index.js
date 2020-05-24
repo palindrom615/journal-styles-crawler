@@ -3,6 +3,8 @@ const fs = require("fs").promises;
 
 const device = puppeteer.devices["Galaxy Note 3"];
 
+const EXT = "";
+
 const getInfo = async ([journal, url], browser) => {
   const page = await browser.newPage();
   await page.emulate(device);
@@ -21,7 +23,7 @@ const getInfo = async ([journal, url], browser) => {
   }
 
   const scsPromise = page.screenshot({
-    path: "screenshots/" + journal + ".png",
+    path: `screenshots${EXT}/${journal}.png`,
     fullPage: true,
   });
 
@@ -30,6 +32,9 @@ const getInfo = async ([journal, url], browser) => {
   );
   const textStylePromises = textNodes.map((elemHandler) =>
     elemHandler.evaluate((elem) => {
+      if (elem.wholeText.trim().split(" ").length < 30) {
+        return;
+      }
       try {
         style = getComputedStyle(elem.parentNode || elem);
       } catch (e) {
@@ -47,7 +52,7 @@ const getInfo = async ([journal, url], browser) => {
 };
 
 (async () => {
-  const journals = (await fs.readFile("./journals", "utf8"))
+  const journals = (await fs.readFile(`./journals${EXT}`, "utf8"))
     .trim()
     .split("\n")
     .filter((str) => !str.startsWith("//"))
@@ -64,7 +69,7 @@ const getInfo = async ([journal, url], browser) => {
     .map(([_, ...textStyle], journalIdx) => {
       // find second paragraph over 30 words.
       const mainContentFirst = textStyle.filter(
-        (t) => typeof t !== "undefined" && t.txt.trim().split(" ").length > 30
+        (t) => typeof t !== "undefined"
       );
       return {
         journal: journals[journalIdx][0],
@@ -74,8 +79,5 @@ const getInfo = async ([journal, url], browser) => {
     });
   await browser.close();
 
-  await fs.writeFile(
-    `result-${Date.now()}.json`,
-    JSON.stringify(resultsJson)
-  );
+  await fs.writeFile(`result-${Date.now()}.json`, JSON.stringify(resultsJson));
 })();
