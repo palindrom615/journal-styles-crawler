@@ -1,4 +1,5 @@
 const puppeteer = require("puppeteer");
+const fs = require("fs");
 // const devices = require("puppeteer/DeviceDescriptors");
 const device = puppeteer.devices["Galaxy Note 3"];
 (async () => {
@@ -8,26 +9,20 @@ const device = puppeteer.devices["Galaxy Note 3"];
 
   const getInfo = async (url) => {
     const { hostname } = new URL(url);
-    console.log(hostname)
     const page = await browser.newPage();
     await page.emulate(device);
     await page.goto(url);
-    const scsPromise = page.screenshot({ path: hostname+'.png', fullPage: true });
-    // const nodes = await page.$$("*");
+    const scsPromise = page.screenshot({
+      path: hostname + ".png",
+      fullPage: true,
+    });
 
-    // const nodeArr = Array.from(nodes);
-
-    const texts = await page.$x(
-      "//text()[not(parent::script|parent::style)]"
-    );
-    console.log(texts);
-
-    const textsInnerTextPromise = texts.map((e) =>
-      e.evaluate((e) => {
-        style = getComputedStyle(e.parentNode);
+    const texts = await page.$x("//text()[not(parent::script|parent::style)]");
+    const textsInnerTextPromise = texts.map((elemHandler) =>
+      elemHandler.evaluate((elem) => {
+        style = getComputedStyle(elem.parentNode);
         return {
-          txt: e.wholeText,
-          parent: e.parentNode,
+          txt: elem.wholeText,
           fontSize: style.getPropertyValue("font-size"),
           fontFamily: style.getPropertyValue("font-family"),
         };
@@ -36,7 +31,12 @@ const device = puppeteer.devices["Galaxy Note 3"];
     return Promise.all([scsPromise, ...textsInnerTextPromise]);
   };
 
-  await Promise.all(urls.map(getInfo));
-
+  const results = await Promise.all(urls.map(getInfo));
+  const resultsJson = results.map(([_, ...textStyle], urlIdx) => {
+    const mainContentFirst = textStyle.find((t) => t.txt.length > 100);
+    return { site: url[urlIdx], ...mainContentFirst };
+  });
   await browser.close();
+
+  await fs.writeFile("result.json", JSON.stringify(resultsJson), () => {});
 })();
