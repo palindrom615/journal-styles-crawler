@@ -16,7 +16,7 @@ const getInfo = async ([journal, url], browser) => {
       timeout: 0,
     });
   } catch (e) {
-    console.log(e, journal, url);
+    console.log('19:page goto error: ', e, journal, url);
     return;
   }
 
@@ -33,7 +33,7 @@ const getInfo = async ([journal, url], browser) => {
       try {
         style = getComputedStyle(elem.parentNode || elem);
       } catch (e) {
-        console.log(e, location.href);
+        console.log('36:getComputedStyle error: ', e, location.href);
         return;
       }
       return {
