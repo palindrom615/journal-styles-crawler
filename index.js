@@ -8,20 +8,20 @@ const getInfo = async ([journal, url], browser) => {
   await page.emulate(device);
   page.on("console", (msg) => {
     for (let i = 0; i < msg._args.length; ++i)
-      console.log(`${i}: ${msg._args[i]}`);
+      console.log(`${journal}: ${msg._args[i]}`);
   });
   try {
     await page.goto(url, {
-      waitUntil: "domcontentloaded",
+      waitUntil: "networkidle2",
       timeout: 0,
     });
   } catch (e) {
-    console.log('19:page goto error: ', e, journal, url);
+    console.log("19:page goto error: ", e, journal, url);
     return;
   }
 
   const scsPromise = page.screenshot({
-    path: journal + ".png",
+    path: "screenshots/" + journal + ".png",
     fullPage: true,
   });
 
@@ -33,7 +33,7 @@ const getInfo = async ([journal, url], browser) => {
       try {
         style = getComputedStyle(elem.parentNode || elem);
       } catch (e) {
-        console.log('36:getComputedStyle error: ', e, location.href);
+        console.log("36:getComputedStyle error: ", e, location.href);
         return;
       }
       return {
@@ -50,7 +50,8 @@ const getInfo = async ([journal, url], browser) => {
   const journals = (await fs.readFile("./journals", "utf8"))
     .trim()
     .split("\n")
-    .map((string) => string.split(","))
+    .filter((str) => !str.startsWith("//"))
+    .map((str) => str.split(","))
     .filter((arr) => arr.length === 2 && arr[1] !== "");
   const browser = await puppeteer.launch();
 
@@ -58,11 +59,11 @@ const getInfo = async ([journal, url], browser) => {
     journals.map((journal) => getInfo(journal, browser))
   );
   const resultsJson = results
-    .filter((result) => typeof result !== "undefined")
+    .filter((res) => typeof res !== "undefined")
     .map(([_, ...textStyle], journalIdx) => {
       // find second paragraph over 30 words.
       const mainContentFirst = textStyle.filter(
-        (t) => t.txt.trim().split(" ").length > 30
+        (t) => typeof t !== "undefined" && t.txt.trim().split(" ").length > 30
       );
       return {
         journal: journals[journalIdx][0],
@@ -72,5 +73,9 @@ const getInfo = async ([journal, url], browser) => {
     });
   await browser.close();
 
-  await fs.writeFile("result.json", JSON.stringify(resultsJson));
+  console.log(JSON.stringify(resultsJson));
+  await fs.writeFile(
+    `result-${Date.now()}.json`,
+    JSON.stringify(resultsJson)
+  );
 })();
