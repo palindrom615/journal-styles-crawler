@@ -53,6 +53,7 @@ const getInfo = async ([journal, url], browser) => {
     .filter((str) => !str.startsWith("//"))
     .map((str) => str.split(","))
     .filter((arr) => arr.length === 2 && arr[1] !== "");
+
   const browser = await puppeteer.launch();
 
   const results = await Promise.all(
@@ -73,7 +74,6 @@ const getInfo = async ([journal, url], browser) => {
     });
   await browser.close();
 
-  console.log(JSON.stringify(resultsJson));
   await fs.writeFile(
     `result-${Date.now()}.json`,
     JSON.stringify(resultsJson)
