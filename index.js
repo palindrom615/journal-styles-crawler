@@ -74,6 +74,8 @@ const getInfo = async ([journal, url], browser) => {
         fontSize: style.getPropertyValue("font-size"),
         fontFamily: style.getPropertyValue("font-family"),
         lineHeight: style.getPropertyValue("line-height"),
+        letterSpacing: style.getPropertyValue("letter-spacing"),
+        wordSpacing: style.getPropertyValue("word-spacing"),
       };
     });
   });
