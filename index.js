@@ -8,7 +8,7 @@ const device = puppeteer.devices["Galaxy Note 3"];
 const EXT = "";
 const datePrefix = new Date().toISOString();
 
-const takeScreenshot = async (page, articleTextNodes) => {
+const takeScreenshot = async (page, articleTextNodes, journal) => {
   const pageScsh = page.screenshot({
     path: `${datePrefix}/${journal}.png`,
     fullPage: true,
@@ -77,7 +77,7 @@ const getInfo = async ([journal, url], browser) => {
       };
     });
   });
-  await takeScreenshot(page, articleTextNodes);
+  await takeScreenshot(page, articleTextNodes, journal);
 
   return textStylePromises;
 };
