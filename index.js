@@ -5,29 +5,38 @@ const fs = require("fs").promises;
 
 const device = puppeteer.devices["Galaxy Note 3"];
 
-const EXT = "";
-const datePrefix = new Date().toISOString();
+const EXT = ".chn";
+
+const prefix = new Date().toISOString() + EXT;
 
 const takeScreenshot = async (page, articleTextNodes, journal) => {
-  const pageScsh = page.screenshot({
-    path: `${datePrefix}/${journal}.png`,
+  const pageScsh = await page.screenshot({
+    path: `${prefix}/${journal}.png`,
     fullPage: true,
   });
-  const typeScsh = articleTextNodes[1]
+  if (!articleTextNodes || !articleTextNodes[1]) {
+    console.log(`${journal} no article TextNodes`);
+    return;
+  }
+  const typeScsh = await articleTextNodes[1]
     .evaluateHandle((node) => {
       const p = node.parentNode;
       const pp = node.parentNode.parentNode;
 
       p.textContent =
-        "이 문제를 해결하려면 지방의료원을 서둘러 설립해야 한다. 대전시는 2015년 메르스 사태 때 지방의료원이 없어 대응에 어려움을 겪고 피해도 컸다는 시 안팎의 진단에 따라 지방의료원 설립을 추진해왔다. 당시 노인질환 전문병원인 대청병원과 역시 노인 환자가 많이 몰리는 건양대병원 두곳에서만 17명의 확진자가 발생했다. 고위험군이 몰려 있는 시설에서 확진자가 많이 나오다 보니 병상 자원 부족 문제가 더 심각하게 드러났다. 전국 사망자 38명 중 12명이 대전에서 나왔다. 박희용 대전시 보건정책과 주무관은 “당시에 민간 병원에 환자들을 받아달라 사정했고, 의료진이 부족해 군의관·간호장교까지 투입하며 대응했는데도 피해가 컸다”고 말했다.";
+        "美事訳征之計刊活真選重入。問帰所禁泉原京海顔著選携西碁気。子支確出来伊復日応京点敷設南。立芸想地蘇必思投勝使急出新。東期安竹難戦円更本因速掲断高食。性質北中出夕頭類読刊談疑決条震意連。成島周所午校発治玉測因系。告雪都州配文遣題事併間理購民廃続柳場少海。書衛先順念家転職産制性重家政必的変促。圧歴較報技停解変語委元負含徴。";
       return p;
     })
-    .then((handle) => {
-      return handle
-        .asElement()
-        .screenshot({ path: `${datePrefix}/${journal}-type.png` });
+    .then(async (handle) => {
+      try {
+        return await handle
+          .asElement()
+          .screenshot({ path: `${prefix}/${journal}-type.png` });
+      } catch (e) {
+        console.log(e, await handle.evaluate(node => node.innerHTML));
+      }
     });
-  return Promise.all([pageScsh, typeScsh]);
+  return;
 };
 
 const getInfo = async ([journal, url], browser) => {
@@ -54,7 +63,7 @@ const getInfo = async ([journal, url], browser) => {
   const articleTextNodes = await filter(textNodes, async (elemHandle) => {
     return elemHandle.evaluate((elem) => {
       return (
-        elem.wholeText.trim().split(" ").length > 30 &&
+        // elem.wholeText.trim().split(" ").length > 20 &&
         getComputedStyle(elem.parentNode).getPropertyValue("display") !== "none"
       );
     });
@@ -85,7 +94,7 @@ const getInfo = async ([journal, url], browser) => {
 };
 
 (async () => {
-  await fs.mkdir(datePrefix);
+  await fs.mkdir(prefix);
 
   const journals = (await fs.readFile(`./journals${EXT}`, "utf8"))
     .trim()
@@ -108,6 +117,6 @@ const getInfo = async ([journal, url], browser) => {
   });
   await browser.close();
 
-  await fs.writeFile(`${datePrefix}/result.json`, JSON.stringify(resultsJson));
+  await fs.writeFile(`${prefix}/result.json`, JSON.stringify(resultsJson));
   return;
 })();
