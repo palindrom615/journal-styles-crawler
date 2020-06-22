@@ -5,7 +5,7 @@ const fs = require("fs").promises;
 
 const device = puppeteer.devices["Galaxy Note 3"];
 
-const EXT = ".chn";
+const EXT = ".usa";
 
 const prefix = new Date().toISOString() + EXT;
 
@@ -24,7 +24,7 @@ const takeScreenshot = async (page, articleTextNodes, journal) => {
       const pp = node.parentNode.parentNode;
 
       p.textContent =
-        "美事訳征之計刊活真選重入。問帰所禁泉原京海顔著選携西碁気。子支確出来伊復日応京点敷設南。立芸想地蘇必思投勝使急出新。東期安竹難戦円更本因速掲断高食。性質北中出夕頭類読刊談疑決条震意連。成島周所午校発治玉測因系。告雪都州配文遣題事併間理購民廃続柳場少海。書衛先順念家転職産制性重家政必的変促。圧歴較報技停解変語委元負含徴。";
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
       return p;
     })
     .then(async (handle) => {
@@ -33,7 +33,7 @@ const takeScreenshot = async (page, articleTextNodes, journal) => {
           .asElement()
           .screenshot({ path: `${prefix}/${journal}-type.png` });
       } catch (e) {
-        console.log(e, await handle.evaluate(node => node.innerHTML));
+        console.log(e, await handle.evaluate((node) => node.innerHTML));
       }
     });
   return;
@@ -63,7 +63,7 @@ const getInfo = async ([journal, url], browser) => {
   const articleTextNodes = await filter(textNodes, async (elemHandle) => {
     return elemHandle.evaluate((elem) => {
       return (
-        // elem.wholeText.trim().split(" ").length > 20 &&
+        elem.wholeText.trim().split(" ").length > 40 &&
         getComputedStyle(elem.parentNode).getPropertyValue("display") !== "none"
       );
     });
